@@ -47,6 +47,8 @@ internal static class Player
         timed_events.Add(tool);
     }
 
+    private static int aging_timesync = 0;
+
     public static void RunTimedEvents(int elapsed)
     {
         timed_events.ForEach(t => t.OnTimedAction(elapsed));
@@ -55,6 +57,12 @@ internal static class Player
         {
             if (timed_events[i].IsStopped)
                 timed_events.RemoveAt(i);
+        }
+
+        if ((aging_timesync += elapsed) >= 50)
+        {
+            Levels.Map.AgeScents(aging_timesync / 50);
+            aging_timesync %= 50;
         }
     }
 
@@ -209,6 +217,9 @@ internal static class Player
                 AddTimedEvent(new RunTool((x - X, y - Y), 50)); // constant speed
                 return result = true;
             }
+
+            map.AddFootprint(X, Y, 40, (x - X, y - Y)); // footprint with constant weight
+            map.AddScent(X, Y, 40); // constant scent tail
 
             map.DrawMapPoint(view, X, Y);
             (X, Y) = (x, y);

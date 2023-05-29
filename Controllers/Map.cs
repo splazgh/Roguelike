@@ -3,14 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Roguelike;
 
-internal class Map(int width, int height) : IConsoleDrawer
+internal partial class Map(int width, int height) : IConsoleDrawer
 {
-    private readonly bool[,] known_sites = new bool[width, height];
     private readonly char[,] representation = new char[width, height];
 
+    private readonly bool[,] known_sites = new bool[width, height];
+
     private readonly List<(int, int)> entries = new();
-    private readonly Dictionary<(int, int), MapObject> objects = new();
-    private readonly Dictionary<(int, int), Monster> monsters = new();
 
     internal IReadOnlyCollection<(int, int)> Entries => entries;
 
@@ -22,6 +21,8 @@ internal class Map(int width, int height) : IConsoleDrawer
     public readonly Region FullMap = new(0, 0, width, height);
 
     // interactive map support
+    private readonly Dictionary<(int, int), MapObject> objects = new();
+
     public bool TryGetObject(int x, int y, [NotNullWhen(true)] out MapObject? obj)
     {
         if (objects.TryGetValue((x, y), out obj))
@@ -30,6 +31,8 @@ internal class Map(int width, int height) : IConsoleDrawer
         obj = null;
         return false;
     }
+
+    private readonly Dictionary<(int, int), Monster> monsters = new();
 
     public bool TryGetMonster(int x, int y, [NotNullWhen(true)] out Monster? monster)
     {
