@@ -16,10 +16,21 @@ internal class Stats : IConsoleDrawer
     };
 
     private readonly Dictionary<string, Stat> stats_indexer = new();
+    private readonly Dictionary<string, DynamicStats> dynamics = new();
 
-    public Stat this[string Key]
+    public DynamicStats this[string Key]
     {
-        get => stats_indexer[Key];
+        get => dynamics[Key];
+
+        set
+        {
+            foreach (var item in dynamics.Values)
+                item.Bottom++;
+
+            value.Bottom = 1;
+
+            dynamics[Key] = value;
+        }
     }
 
     // About player
@@ -65,6 +76,9 @@ internal class Stats : IConsoleDrawer
 
             region.WriteLine(new(full_row));
         }
+
+        foreach (var d in dynamics.Values)
+            d.DrawTo(region);
     }
 
     [DebuggerDisplay("{Name} : {Value}")]

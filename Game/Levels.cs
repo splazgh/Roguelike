@@ -26,6 +26,10 @@ internal static class Levels
         map.Paste(MapTemplates.LongWayToEast, 15, 7);
         map.Paste(MapTemplates.LargeRoom, 57, 6);
 
+        Player.Stats["XP"] = new("XP", 0, 250, ConsoleColor.DarkGray);
+        Player.Stats["HP"] = new("HP", 17, 18, ConsoleColor.DarkRed);
+        Player.Stats["MP"] = new("MP", 4, 4, ConsoleColor.DarkBlue);
+
         Player.ActionAt(11, 9);
 
         int max_monsters = Math.Max(5, (int)(Player.Depth * Math.Pow(1.05, Player.Depth + 1)));

@@ -69,6 +69,22 @@ public record Region(int X1, int Y1, int X2, int Y2)
         cX = Math.Min(Width, cX + line.Length);
     }
 
+    public void Write(string line, ConsoleColor fg)
+    {
+        if (WriteLock)
+            return;
+
+        var backup_color = Console.ForegroundColor;
+        Console.ForegroundColor = fg;
+
+        Console.SetCursorPosition(Left + cX, Top + cY);
+        Console.Write(line);
+
+        Console.ForegroundColor = backup_color;
+
+        cX = Math.Min(Width, cX + line.Length);
+    }
+
     public void WriteLine(string line)
     {
         if (WriteLock)
