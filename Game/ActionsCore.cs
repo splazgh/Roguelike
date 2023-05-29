@@ -13,7 +13,7 @@ internal static class ActionsCore
         while (true)
         {
             // global screen update action
-            if (active_level != Player.Level)
+            if (active_level != Player.Depth)
             {
                 ScreenCap.MessageLog.PendingUpdate = true;
 
@@ -22,7 +22,7 @@ internal static class ActionsCore
                 Player.Stats.DrawTo(ScreenCap.Stats);
                 StatusRow.DrawTo(ScreenCap.Status);
 
-                active_level = Player.Level;
+                active_level = Player.Depth;
             }
 
             bool wasDepleted = Journal.Log.Depleted;

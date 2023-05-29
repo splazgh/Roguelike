@@ -5,13 +5,14 @@ internal static class MapObjectsCollection
 {
     public static readonly MapObjectInfo[] Lib = new MapObjectInfo[]
     {
-        new('>', '>', ConsoleColor.Gray,       "stair down"),
-        new('<', '<', ConsoleColor.Gray,       "stair up"),
+        new('>', '>', ConsoleColor.Gray,       "stairs leading down"),
+        new('<', '<', ConsoleColor.Gray,       "stairs leading up"),
         new('"', 'p', ConsoleColor.Green,      "herbs"),
-        new('≈','\0', ConsoleColor.DarkBlue,   "water"),
+        new('≈','\0', ConsoleColor.DarkBlue,   "flowing water"),
         new('+', '/', ConsoleColor.DarkYellow, "closed door"),
         new('\\','/', ConsoleColor.DarkYellow, "open door"),
         new('_', 'u', ConsoleColor.DarkRed,    "altar"),
+        new('&', 'u', ConsoleColor.DarkGray,   "forge"),
         new('#', 'd', ConsoleColor.DarkGray,   "rock")
     };
 

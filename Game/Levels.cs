@@ -14,18 +14,21 @@ internal static class Levels
         [DebuggerStepThrough]
         get
         {
-            return Data[Player.Level];
+            return Data[Player.Depth];
         }
     }
 
     static Levels()
     {
-        Map first = Data[Player.Level] = new(100, 100);
+        Map map = Data[Player.Depth] = new(100, 100);
 
-        first.Paste(MapTemplates.SmallRoom, 5, 5);
-        first.Paste(MapTemplates.LongWayToEast, 15, 7);
-        first.Paste(MapTemplates.LargeRoom, 57, 6);
+        map.Paste(MapTemplates.SmallRoom, 5, 5);
+        map.Paste(MapTemplates.LongWayToEast, 15, 7);
+        map.Paste(MapTemplates.LargeRoom, 57, 6);
 
         (Player.X, Player.Y) = (11, 9);
+
+        int max_monsters = Math.Max(5, (int)(Player.Depth * Math.Pow(1.05, Player.Depth + 1)));
+        map.PlaceFoes(Player.Depth, max_monsters);
     }
 }

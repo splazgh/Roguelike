@@ -28,7 +28,7 @@ internal class MapObject(char c, int x, int y)
 
     public void DrawTo(Region view)
     {
-        Map map = Levels.Data[Player.Level];
+        Map map = Levels.Data[Player.Depth];
 
         // check map coordinates
         if (!map.FullMap.Contains(Coordinates))

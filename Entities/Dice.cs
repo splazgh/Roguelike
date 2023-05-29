@@ -20,7 +20,7 @@ internal class Dice(int count, int rank)
         string[] values = template.Split('d', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         if (values.Length is 2
-            && int.TryParse(values[1], out int count_value))
+            && int.TryParse(values[0], out int count_value))
         {
             count = Math.Max(1, Math.Min(count_value, 8));
         }

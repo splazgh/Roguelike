@@ -6,7 +6,7 @@ namespace Roguelike;
 internal static class Player
 {
     // Player placement
-    public static int Level = 0;
+    public static int Depth = 0;
     public static int X, Y;
 
     public static (int dX, int dY) Offset { get; set; } = (0, 0);
@@ -30,7 +30,7 @@ internal static class Player
             result += $"Right Hand: {Equip.RightHand?.Damage ?? Dice.Zero}  ";
         }
 
-        result += $"    Depth: {Level * 50} m  ";
+        result += $"    Depth: {Depth * 50} m  ";
 
         return result;
     }
@@ -115,7 +115,7 @@ internal static class Player
     private static void Action(int x, int y, char type)
     {
         var view = ScreenCap.View;
-        var map = Levels.Data[Level];
+        var map = Levels.Data[Depth];
 
         if (!map.FullMap.Contains(x, y))
             return;
@@ -176,7 +176,7 @@ internal static class Player
 
     public static void DrawTo(Region view)
     {
-        Map map = Levels.Data[Level];
+        Map map = Levels.Data[Depth];
 
         // check map coordinates
         if (!map.FullMap.Contains(X, Y))
