@@ -5,6 +5,8 @@ namespace Roguelike;
 
 internal static class Player
 {
+    public const int ViewRange = 5;
+
     // Player placement
     public static int Depth = 0;
     public static int X, Y;
@@ -86,35 +88,35 @@ internal static class Player
                 switch (key_info.Key)
                 {
                     case LeftArrow or NumPad4:
-                        successful_action = Action(X - 1, Y, prefix);
+                        successful_action = ActionAt(X - 1, Y, prefix);
                         break;
 
                     case RightArrow or NumPad6:
-                        successful_action = Action(X + 1, Y, prefix);
+                        successful_action = ActionAt(X + 1, Y, prefix);
                         break;
 
                     case UpArrow or NumPad8:
-                        successful_action = Action(X, Y - 1, prefix);
+                        successful_action = ActionAt(X, Y - 1, prefix);
                         break;
 
                     case DownArrow or NumPad2:
-                        successful_action = Action(X, Y + 1, prefix);
+                        successful_action = ActionAt(X, Y + 1, prefix);
                         break;
 
                     case Home or NumPad7:
-                        successful_action = Action(X - 1, Y - 1, prefix);
+                        successful_action = ActionAt(X - 1, Y - 1, prefix);
                         break;
 
                     case PageUp or NumPad9:
-                        successful_action = Action(X + 1, Y - 1, prefix);
+                        successful_action = ActionAt(X + 1, Y - 1, prefix);
                         break;
 
                     case End or NumPad1:
-                        successful_action = Action(X - 1, Y + 1, prefix);
+                        successful_action = ActionAt(X - 1, Y + 1, prefix);
                         break;
 
                     case PageDown or NumPad3:
-                        successful_action = Action(X + 1, Y + 1, prefix);
+                        successful_action = ActionAt(X + 1, Y + 1, prefix);
                         break;
                 }
 
@@ -146,80 +148,90 @@ internal static class Player
 
     private static readonly char[] vowels = new char[] { 'a', 'e', 'y', 'u', 'i', 'o' };
 
-    public static bool Action(int x, int y, char type = '\0')
+    public static bool ActionAt(int x, int y, char type = '\0')
     {
+        bool result = false;
+
         var view = ScreenCap.View;
         var map = Levels.Data[Depth];
 
-        if (!map.FullMap.Contains(x, y))
-            return false;
-
-        if (map.TryGetMonster(x, y, out _))
+        try
         {
-            Journal.Log.AddNormal("You can't pass through the foe.");
-            return false;
-        }
+            if (!map.FullMap.Contains(x, y))
+                return false;
 
-        if (map.TryGetObject(x, y, out MapObject? obj))
-        {
-            if (type is not '\0'
-                && type == obj.KeyAction)
+            if (map.TryGetMonster(x, y, out _))
             {
-                switch (obj.Type)
+                Journal.Log.AddNormal("You can't pass through the foe.");
+                return false;
+            }
+
+            if (map.TryGetObject(x, y, out MapObject? obj))
+            {
+                if (type is not '\0'
+                    && type == obj.KeyAction)
                 {
-                    case '+':
-                        obj.Update('\\');
-                        obj.DrawTo(view);
+                    switch (obj.Type)
+                    {
+                        case '+':
+                            obj.Update('\\');
+                            obj.DrawTo(view);
 
-                        Journal.Log.AddNormal("You open the door.");
-                        return true;
+                            Journal.Log.AddNormal("You open the door.");
+                            return result = true;
 
-                    case '\\':
-                        obj.Update('+');
-                        obj.DrawTo(view);
+                        case '\\':
+                            obj.Update('+');
+                            obj.DrawTo(view);
 
-                        Journal.Log.AddNormal("You close the door.");
-                        return true;
+                            Journal.Log.AddNormal("You close the door.");
+                            return result = true;
+                    }
+
+                    return false;
                 }
+            }
+            else
+                obj = null;
+
+            if (obj?.CanPass is false)
+            {
+                if (obj.CanSwim)
+                    Journal.Log.AddNormal($"You don't know how to swim.");
+                else
+                    Journal.Log.AddNormal($"You stuck at the {obj.Name}.");
 
                 return false;
             }
-        }
-        else
-            obj = null;
 
-        if (obj?.CanPass is false)
+            if (type == '.')
+            {
+                AddTimedEvent(new RunTool((x - X, y - Y), 50)); // constant speed
+                return result = true;
+            }
+
+            map.DrawMapPoint(view, X, Y);
+            (X, Y) = (x, y);
+
+            DrawTo(view);
+
+            if (obj?.CanPass is true)
+            {
+                string article = obj.Name.IndexOfAny(vowels) == 0
+                    ? "an"
+                    : "a";
+
+                Journal.Log.AddNormal($"You see {article} {obj.Name}.");
+                return result = true;
+            }
+
+            return result = true;
+        }
+        finally
         {
-            if (obj.CanSwim)
-                Journal.Log.AddNormal($"You don't know how to swim.");
-            else
-                Journal.Log.AddNormal($"You stuck at the {obj.Name}.");
-
-            return false;
+            if (result)
+                map.OpenFogOfWar(X, Y, ViewRange);
         }
-
-        if (type == '.')
-        {
-            AddTimedEvent(new RunTool((x - X, y - Y), 50)); // constant speed
-            return true;
-        }
-
-        map.DrawMapPoint(view, X, Y);
-        (X, Y) = (x, y);
-
-        DrawTo(view);
-
-        if (obj?.CanPass is true)
-        {
-            string article = obj.Name.IndexOfAny(vowels) == 0
-                ? "an"
-                : "a";
-
-            Journal.Log.AddNormal($"You see {article} {obj.Name}.");
-            return true;
-        }
-
-        return true;
     }
 
     public static void DrawTo(Region view)

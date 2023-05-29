@@ -108,6 +108,9 @@ internal class Map(int width, int height) : IConsoleDrawer
                 if (c == '\0')
                     continue;
 
+                if (Player.X == i && Player.Y == j)
+                    continue;
+
                 if (MapObjectsCollection.Unknown(c))
                     result.Add((i, j));
             }
@@ -172,6 +175,9 @@ internal class Map(int width, int height) : IConsoleDrawer
                     if (mapX >= representation.GetLength(0))
                         continue;
 
+                    if (!known_sites[mapX, mapY])
+                        continue;
+
                     if (monsters.TryGetValue((mapX, mapY), out var monster))
                         row_monsters.Add(monster);
 
@@ -214,6 +220,18 @@ internal class Map(int width, int height) : IConsoleDrawer
         if (!view.Contains(viewX, viewY))
             return;
 
+        if (!known_sites[X, Y])
+        {
+            view.WriteChar(X, Y, ' ');
+            return;
+        }
+
+        if (TryGetMonster(X, Y, out var m))
+        {
+            m.DrawTo(view);
+            return;
+        }
+
         if (TryGetObject(X, Y, out var obj))
         {
             obj.DrawTo(view);
@@ -222,5 +240,87 @@ internal class Map(int width, int height) : IConsoleDrawer
 
         // draw one char at map point
         view.WriteChar(X, Y, representation[X, Y]);
+    }
+
+    internal void OpenFogOfWar(int x, int y, int range)
+    {
+        int square_range = range * range;
+
+        for (int j = -range; j <= range; j++) 
+        {
+            if (!FullMap.Contains(x, y + j))
+                continue;
+
+            for (int i = -range; i <= range; i++)
+            {
+                if (!FullMap.Contains(x + i, y + j))
+                    continue;
+
+                if (i * i + j * j > square_range)
+                    continue;
+
+                if (!DirectVisible(x, y, i, j))
+                    continue;
+
+                if (!known_sites[x + i, y + j])
+                {
+                    known_sites[x + i, y + j] = true;
+                    DrawMapPoint(ScreenCap.View, x + i, y + j);
+                }
+            }
+        }
+    }
+
+    private bool DirectVisible(int x1, int y1, int dx, int dy)
+    {
+        int x = x1, y = y1;
+        int x2 = x1 + dx, y2 = y1 + dy;
+
+        int x_step = Math.Abs(dx);
+        int y_step = Math.Abs(dy);
+
+        bool lastVisible = true;
+        int x_threshold = 0, y_threshold = 0;
+
+        while (true)
+        {
+            if (!lastVisible)
+                return false;
+
+            if (x == x2 || y == y2)
+                break;
+
+            if (objects.TryGetValue((x, y), out var obj))
+                lastVisible = obj?.CanPass is not false;
+
+            if (x_threshold <= 0)
+                x_threshold += x_step;
+
+            if (y_threshold <= 0)
+                y_threshold += y_step;
+
+            // look at the direction
+            if (x_threshold >= y_threshold)
+            {
+                x_threshold -= y_step;
+
+                if (dx < 0)
+                    x--;
+                else if (dx > 0)
+                    x++;
+            }
+
+            if (x_threshold <= y_threshold)
+            {
+                y_threshold -= x_step;
+
+                if (dy < 0)
+                    y--;
+                else if (dy > 0)
+                    y++;
+            }
+        }
+
+        return true;
     }
 }

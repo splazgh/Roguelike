@@ -66,7 +66,7 @@ internal class RunTool((int x, int y) direction, int timeStep) : ITimedEvent
         try
         {
             // process failed move action
-            if (!Player.Action(Player.X + Direction.X, Player.Y + Direction.Y))
+            if (!Player.ActionAt(Player.X + Direction.X, Player.Y + Direction.Y))
                 IsStopped = true;
 
             // process successful move action
