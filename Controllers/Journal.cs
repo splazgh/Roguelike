@@ -1,7 +1,7 @@
 ﻿
 namespace Roguelike;
 
-public partial class Journal
+public partial class Journal : IConsoleDrawer
 {
     private const int records_cap = 1000;
 
@@ -86,7 +86,7 @@ public partial class Journal
         }
     }
 
-    public bool ProcessKey(ConsoleKeyInfo key_info)
+    public static bool ProcessKey(ConsoleKeyInfo key_info)
     {
         return key_info.Modifiers == 0
             && key_info.Key is ConsoleKey.Spacebar or ConsoleKey.Enter;

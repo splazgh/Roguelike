@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Roguelike;
 
 [DebuggerDisplay("{(IsNamed ? Kind + \" named \"\"\" + Name + \"\"\"\" : Kind)} LVL: {Level}")]
-internal class Monster(Monsters.Info info, int x, int y)
+internal class Monster(Monsters.Info info, int x, int y) : IConsoleDrawer
 {
     // draw factor
     public readonly char Char = info.Char;
@@ -47,7 +47,7 @@ internal class Monster(Monsters.Info info, int x, int y)
         if (Depth != Player.Depth)
             return;
 
-        Map map = Levels.Data[Player.Depth];
+        Map map = Levels.Map;
 
         // check map coordinates
         if (!map.FullMap.Contains(X, Y))

@@ -16,6 +16,8 @@ internal static class Player
     public static Equipment Equip { get; private set; } = new();
     public static uint Resurrections { get; private set; } = 0;
 
+    public static readonly List<ITimedEvent> timed_events = new();
+
     internal static string GetState()
     {
         string result = $"Resurrections: {Resurrections}    ";
@@ -35,17 +37,38 @@ internal static class Player
         return result;
     }
 
+    public static void AddTimedEvent(ITimedEvent tool)
+    {
+        if (tool.IsStopped)
+            return;
+
+        timed_events.Add(tool);
+    }
+
     public static void RunTimedEvents(int elapsed)
     {
+        timed_events.ForEach(t => t.OnTimedAction(elapsed));
+
+        for (int i = timed_events.Count - 1; i >= 0; i--)
+        {
+            if (timed_events[i].IsStopped)
+                timed_events.RemoveAt(i);
+        }
     }
 
     public static bool StopTimedEvents()
     {
-        return false;
+        bool result = timed_events.Any(t => !t.IsStopped);
+
+        timed_events.Clear();
+
+        return result;
     }
 
     public static char ProcessKey(ConsoleKeyInfo key_info, char prefix)
     {
+        bool successful_action = true;
+
         switch (key_info.Key)
         {
             case Spacebar or Enter:
@@ -58,53 +81,64 @@ internal static class Player
                 if (StopTimedEvents())
                     break;
 
+                successful_action = false;
+
                 switch (key_info.Key)
                 {
                     case LeftArrow or NumPad4:
-                        Action(X - 1, Y, prefix);
+                        successful_action = Action(X - 1, Y, prefix);
                         break;
 
                     case RightArrow or NumPad6:
-                        Action(X + 1, Y, prefix);
+                        successful_action = Action(X + 1, Y, prefix);
                         break;
 
                     case UpArrow or NumPad8:
-                        Action(X, Y - 1, prefix);
+                        successful_action = Action(X, Y - 1, prefix);
                         break;
 
                     case DownArrow or NumPad2:
-                        Action(X, Y + 1, prefix);
+                        successful_action = Action(X, Y + 1, prefix);
                         break;
 
                     case Home or NumPad7:
-                        Action(X - 1, Y - 1, prefix);
+                        successful_action = Action(X - 1, Y - 1, prefix);
                         break;
 
                     case PageUp or NumPad9:
-                        Action(X + 1, Y - 1, prefix);
+                        successful_action = Action(X + 1, Y - 1, prefix);
                         break;
 
                     case End or NumPad1:
-                        Action(X - 1, Y + 1, prefix);
+                        successful_action = Action(X - 1, Y + 1, prefix);
                         break;
 
                     case PageDown or NumPad3:
-                        Action(X + 1, Y + 1, prefix);
+                        successful_action = Action(X + 1, Y + 1, prefix);
                         break;
                 }
 
                 break;
 
             case D:
-                Journal.Log.AddSignified("You don't have a pick.");
+                Journal.Log.AddNormal("You don't have a pick.");
                 break;
 
+            case OemPeriod:
+                Journal.Log.AddNormal("Which direction?");
+                return '.';
+
             case Oem2:
-                Journal.Log.AddSignified("Which direction?");
+                Journal.Log.AddNormal("Which direction?");
                 return '/';
 
             default:
                 break;
+        }
+
+        if (!successful_action)
+        {
+            RunTimedEvents(50);   // constant speed
         }
 
         return '\0';
@@ -112,13 +146,19 @@ internal static class Player
 
     private static readonly char[] vowels = new char[] { 'a', 'e', 'y', 'u', 'i', 'o' };
 
-    private static void Action(int x, int y, char type)
+    public static bool Action(int x, int y, char type = '\0')
     {
         var view = ScreenCap.View;
         var map = Levels.Data[Depth];
 
         if (!map.FullMap.Contains(x, y))
-            return;
+            return false;
+
+        if (map.TryGetMonster(x, y, out _))
+        {
+            Journal.Log.AddNormal("You can't pass through the foe.");
+            return false;
+        }
 
         if (map.TryGetObject(x, y, out MapObject? obj))
         {
@@ -132,17 +172,17 @@ internal static class Player
                         obj.DrawTo(view);
 
                         Journal.Log.AddNormal("You open the door.");
-                        break;
+                        return true;
 
                     case '\\':
                         obj.Update('+');
                         obj.DrawTo(view);
 
                         Journal.Log.AddNormal("You close the door.");
-                        break;
+                        return true;
                 }
 
-                return;
+                return false;
             }
         }
         else
@@ -155,7 +195,13 @@ internal static class Player
             else
                 Journal.Log.AddNormal($"You stuck at the {obj.Name}.");
 
-            return;
+            return false;
+        }
+
+        if (type == '.')
+        {
+            AddTimedEvent(new RunTool((x - X, y - Y), 50)); // constant speed
+            return true;
         }
 
         map.DrawMapPoint(view, X, Y);
@@ -170,8 +216,10 @@ internal static class Player
                 : "a";
 
             Journal.Log.AddNormal($"You see {article} {obj.Name}.");
-            return;
+            return true;
         }
+
+        return true;
     }
 
     public static void DrawTo(Region view)

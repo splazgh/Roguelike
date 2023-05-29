@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Roguelike;
 
-internal class Stats
+internal class Stats : IConsoleDrawer
 {
     private static readonly List<Stat> stats = new()
     {

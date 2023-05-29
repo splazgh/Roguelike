@@ -47,7 +47,7 @@ internal static class ActionsCore
                 }
 
                 // process message log
-                if (Journal.Log.ProcessKey(key_info)
+                if (Journal.ProcessKey(key_info)
                     || wasDepleted)
                 {
                     ScreenCap.MessageLog.Clear();
@@ -63,8 +63,8 @@ internal static class ActionsCore
             // wait for timed actions
             else
             {
-                event_timer.Wait(50);
-                Player.RunTimedEvents(50);
+                event_timer.Wait(50);        // constant speed
+                Player.RunTimedEvents(50);   // constant speed
             }
 
             // show partial message log

@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Roguelike;
 
-internal class Map(int width, int height)
+internal class Map(int width, int height) : IConsoleDrawer
 {
     private readonly bool[,] known_sites = new bool[width, height];
     private readonly char[,] representation = new char[width, height];
@@ -31,11 +31,6 @@ internal class Map(int width, int height)
         return false;
     }
 
-    public void AddMonster((int, int) coordinates, Monster monster)
-    {
-        monsters[coordinates] = monster;
-    }
-
     public bool TryGetMonster(int x, int y, [NotNullWhen(true)] out Monster? monster)
     {
         if (monsters.TryGetValue((x, y), out monster))
@@ -43,6 +38,30 @@ internal class Map(int width, int height)
 
         monster = null;
         return false;
+    }
+
+    public bool[,] TestDirections(int x, int y)
+    {
+        bool[,] result = new bool[3, 3];
+
+        for (int j = -1; j < 2; j++)
+            for (int i = -1; i < 2; i++)
+            {
+                var map_c = (x + i, y + j);
+
+                if (!FullMap.Contains(map_c))
+                    continue;
+
+                if (monsters.ContainsKey(map_c))
+                    continue;
+
+                if (objects.TryGetValue(map_c, out var obj))
+                    result[1 + i, 1 + j] = obj?.CanPass is not false;
+                else
+                    result[1 + i, 1 + j] = true;
+            }
+
+        return result;
     }
 
     // map generator support
@@ -105,6 +124,11 @@ internal class Map(int width, int height)
             .OrderBy(t => t.Y)
             .ThenBy(t => t.X)
             .ToList();
+    }
+
+    public void AddMonster((int, int) coordinates, Monster monster)
+    {
+        monsters[coordinates] = monster;
     }
 
     // map view support

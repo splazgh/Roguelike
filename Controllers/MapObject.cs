@@ -3,7 +3,7 @@ using static Roguelike.MapObjectsCollection;
 
 namespace Roguelike;
 
-internal class MapObject(char c, int x, int y)
+internal class MapObject(char c, int x, int y) : IConsoleDrawer
 {
     public char Type = c;
     public readonly int X = x, Y = y;
@@ -28,7 +28,7 @@ internal class MapObject(char c, int x, int y)
 
     public void DrawTo(Region view)
     {
-        Map map = Levels.Data[Player.Depth];
+        Map map = Levels.Map;
 
         // check map coordinates
         if (!map.FullMap.Contains(Coordinates))
