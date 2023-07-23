@@ -1,24 +1,24 @@
 ﻿
 namespace Roguelike;
 
-internal class RunTool((int x, int y) direction, int timeStep) : ITimedEvent
+internal class RunTool((int x, int y) direction, int tick) : ITimedEvent
 {
     private bool isJustRan = true;
     private bool[,] backside_disable_mask = new bool[3, 3];
 
     public (int X, int Y) Direction { get; private set; } = direction;
 
-    public int TimeStep { get; private set; } = timeStep;
+    public int TickSize { get; private set; } = tick;
     public int TimeCounter { get; set; } = 0;
 
     public bool IsStopped { get; set; } = false;
 
-    public void TickTime()
+    public void OnTick()
     {
         if (IsStopped)
             return;
 
-        var map = Levels.Map;
+        var map = Player.Map;
 
         // process no direction
         if (Direction.X == 0 && Direction.Y == 0)
@@ -66,7 +66,7 @@ internal class RunTool((int x, int y) direction, int timeStep) : ITimedEvent
         try
         {
             // process failed move action
-            if (!Player.ActionAt(Player.X + Direction.X, Player.Y + Direction.Y))
+            if (!Player.ActionTo(Player.X + Direction.X, Player.Y + Direction.Y))
                 IsStopped = true;
 
             // process successful move action

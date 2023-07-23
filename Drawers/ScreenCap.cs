@@ -3,6 +3,7 @@ using System.Diagnostics;
 
 namespace Roguelike;
 
+[DebuggerDisplay("{width}:{height}")]
 public static partial class ScreenCap
 {
     private static int width, height;

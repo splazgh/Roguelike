@@ -7,12 +7,12 @@ internal static class NameGeneratorExt
 {
     private static readonly Random RNG = new((int)DateTime.Now.TimeOfDay.TotalMicroseconds);
 
-    public static string GenerateName(this NameGenerator gen, int naming_threshold)
+    public static string GenerateName(this NameGenerator generator, int rareFactor)
     {
-        if (RNG.Next(100) > naming_threshold)
+        if (RNG.Next(100) > rareFactor)
             return string.Empty;
 
-        return gen switch
+        return generator switch
         {
             NameGenerator.Goblin => GetGoblin(),
             NameGenerator.Orc => GetOrc(),

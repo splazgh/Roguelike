@@ -5,12 +5,12 @@ internal class MonsterMove((int x, int y) target, int timeStep) : ITimedEvent
 {
     public (int x, int y) Target { get; private set; } = target;
 
-    public int TimeStep { get; private set; } = timeStep;
+    public int TickSize { get; private set; } = timeStep;
     public int TimeCounter { get; set; } = 0;
 
     public bool IsStopped { get; set; } = false;
 
-    public void TickTime()
+    public void OnTick()
     {
 
     }

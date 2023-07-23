@@ -2,12 +2,15 @@
 using System.Diagnostics;
 
 using static Roguelike.Monsters.NameGenerator;
+using static Roguelike.Behavior;
 
 namespace Roguelike;
 
 internal static class Monsters
 {
-    public static readonly Info[] Lib = new Info[]
+    private static readonly Random RNG = new((int)DateTime.Now.TimeOfDay.TotalSeconds);
+
+    internal static readonly Info[] Lib = new Info[]
     {
         new('r', "1d1", "rat",          2,  0,   1,   0, 50, null,   ConsoleColor.DarkYellow, new[] { "1d1" }),
         new('r', "2d1", "gray rat",     5,  0,   4,   1, 60, null,   ConsoleColor.Gray,       new[] { "1d2", "1d2" }),
@@ -20,7 +23,39 @@ internal static class Monsters
         new('h', "5d5", "mercenary",   60,  0,  30,  10, 75, Outlaw, ConsoleColor.DarkGray,   new[] { "2d8" })
     };
 
-    private static readonly Random RNG = new((int)DateTime.Now.TimeOfDay.TotalSeconds);
+    internal static Mood Initiate(char mapChar, string kind)
+    {
+        return (mapChar, kind) switch
+        {
+            ('r', _) => Mood.HangingAround,
+            ('g', _) => Mood.Coward,
+            ('h', "hobgoblin") => Mood.Pathtrail,
+            ('o', _) => Mood.Freelance,
+            ('h', "warrior") => Mood.KeepFlag,
+            ('h', "mercenary") => Mood.Freelance,
+            _ => Mood.Calm
+        };
+    }
+
+    internal static Mood Update(this MonsterTactic t, char mapChar, string kind)
+    {
+        if (t.MoodTimer-- > 0)
+            return t.State;
+
+        if (t.Subject.Depth != Player.Depth)
+            return Mood.Sleep;
+
+        if (t.MoodTimer <= 0)
+            t.MoodTimer = 40;
+
+        if (t.Safepoint.HasValue)
+        {
+            t.ReplaceTarget(t.Safepoint.Value);
+            return Mood.HangingAround;
+        }
+
+        return Initiate(mapChar, kind);
+    }
 
     public static List<Info> Generate(int count, Dice complexity)
     {
@@ -69,15 +104,20 @@ internal static class Monsters
             .ToList();
     }
 
-    public static void PlaceFoes(this Map map, int depth, int max_monsters)
+    public static void PlaceFoes(this Map map, int depth, int maxFoes)
     {
         var free_sites = map.GetFreeSites(true, false);
-        int get_count = Math.Min((int)(free_sites.Count * 0.25), max_monsters);
+        int get_count = Math.Min((int)(free_sites.Count * 0.25), maxFoes);
 
         string complexity = $"{depth % 3}d{depth / 3}";
 
         var monsters = Generate(get_count, Dice.Create(complexity));
+        
+        // lead monsters
 
+        // pack monsters
+
+        // plain monsters
         for (int i = 0; i < monsters.Count; i++)
         {
             int idx = RNG.Next(free_sites.Count);
@@ -92,11 +132,11 @@ internal static class Monsters
     public enum NameGenerator { Goblin, Orc, Human, Outlaw }
 
     [DebuggerDisplay("{(IsNamed ? Kind + \" named \\\"\" + Name + \"\\\"\" : Kind)}")]
-    internal struct Info(char c, string frequency, string kind,
-        int hit_points, int mana_points, int experience, int armor_class, int speed,
+    internal struct Info(char mapChar, string frequency, string kind,
+        int hp, int mp, int exp, int ac, int speed,
         NameGenerator? naming, ConsoleColor color, string[] attacks)
     {
-        public readonly char Char = c;
+        public readonly char MapChar = mapChar;
         public readonly ConsoleColor Color = color;
         public readonly string Kind = kind;
 
@@ -105,10 +145,10 @@ internal static class Monsters
 
         public readonly Dice Freq = Dice.Create(frequency);
 
-        public readonly int HP =    Math.Max(0, hit_points);
-        public readonly int MP =    Math.Max(0, mana_points);
-        public readonly int XP =    Math.Max(0, experience);
-        public readonly int AC =    Math.Max(0, armor_class);
+        public readonly int HP =    Math.Max(0, hp);
+        public readonly int MP =    Math.Max(0, mp);
+        public readonly int XP =    Math.Max(0, exp);
+        public readonly int AC =    Math.Max(0, ac);
 
         public readonly int Speed = Math.Max(1, speed);
 

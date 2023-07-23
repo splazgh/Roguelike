@@ -1,16 +1,16 @@
 ﻿
-using static Roguelike.MapObjectsCollection;
+using static Roguelike.MapObjects;
 
 namespace Roguelike;
 
-internal class MapObject(char c, int x, int y) : IConsoleDrawer
+internal class MapObject(char type, int x, int y) : IConsoleDrawer
 {
-    public char Type = c;
+    public char Type = type;
     public readonly int X = x, Y = y;
 
-    public char KeyAction = GetKey(c);
-    public ConsoleColor Color = GetColor(c);
-    public string Name = GetName(c);
+    public char KeyAction = GetKey(type);
+    public ConsoleColor Color = GetColor(type);
+    public string Name = GetName(type);
 
     public (int, int) Coordinates => (X, Y);
 
@@ -28,10 +28,10 @@ internal class MapObject(char c, int x, int y) : IConsoleDrawer
 
     public void DrawTo(Region view)
     {
-        Map map = Levels.Map;
+        Map map = Player.Map;
 
         // check map coordinates
-        if (!map.FullMap.Contains(Coordinates))
+        if (!map.FullSize.Contains(Coordinates))
             return;
 
         // calc and check view coordinates

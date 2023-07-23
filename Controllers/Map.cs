@@ -5,23 +5,39 @@ namespace Roguelike;
 
 internal partial class Map(int width, int height) : IConsoleDrawer
 {
-    private readonly char[,] representation = new char[width, height];
+    public readonly Region FullSize = new(0, 0, width, height);
 
+    internal (int dX, int dY) Offset
+    {
+        get => _offset;
+
+        private set
+        {
+            if (Player.Offset != value)
+                DrawMapPoint(ScreenCap.View, Player.X, Player.Y);
+
+            _offset = value;
+        }
+    }
+
+    internal IReadOnlyCollection<(int, int)> Entries => _entries;
+
+    private readonly List<(int, int)> _entries = new();
+    private (int dX, int dY) _offset;
+
+    private readonly char[,] representation = new char[width, height];
     private readonly bool[,] known_sites = new bool[width, height];
 
-    private readonly List<(int, int)> entries = new();
-
-    internal IReadOnlyCollection<(int, int)> Entries => entries;
+    private readonly Dictionary<(int, int), MapObject> objects = new();
+    private readonly Dictionary<(int, int), Monster> monsters = new();
+    private readonly Dictionary<MonsterTactic, (int, int)> tactics = new();
 
     public void AddEntry(int x, int y)
     {
-        entries.Add((x, y));
+        _entries.Add((x, y));
     }
 
-    public readonly Region FullMap = new(0, 0, width, height);
-
     // interactive map support
-    private readonly Dictionary<(int, int), MapObject> objects = new();
 
     public bool TryGetObject(int x, int y, [NotNullWhen(true)] out MapObject? obj)
     {
@@ -32,7 +48,17 @@ internal partial class Map(int width, int height) : IConsoleDrawer
         return false;
     }
 
-    private readonly Dictionary<(int, int), Monster> monsters = new();
+    public void AddMonster((int, int) coordinates, Monster monster)
+    {
+        monsters[coordinates] = monster;
+        tactics[new(50, monster)] = (50, 0); // static speed constant
+    }
+
+    public void AddMonsterFollower((int, int) coordinates, Monster leader, Monster monster)
+    {
+        monsters[coordinates] = monster;
+        tactics[new(50, monster, leader)] = (50, 0); // static speed constant
+    }
 
     public bool TryGetMonster(int x, int y, [NotNullWhen(true)] out Monster? monster)
     {
@@ -50,18 +76,20 @@ internal partial class Map(int width, int height) : IConsoleDrawer
         for (int j = -1; j < 2; j++)
             for (int i = -1; i < 2; i++)
             {
-                var map_c = (x + i, y + j);
+                (int X, int Y) map_c = (x + i, y + j);
 
-                if (!FullMap.Contains(map_c))
+                if (!FullSize.Contains(map_c))
                     continue;
 
                 if (monsters.ContainsKey(map_c))
                     continue;
 
+                bool playerPos = Player.X == map_c.X && Player.Y == map_c.Y;
+
                 if (objects.TryGetValue(map_c, out var obj))
-                    result[1 + i, 1 + j] = obj?.CanPass is not false;
+                    result[1 + i, 1 + j] = obj?.CanPass is not false && !playerPos;
                 else
-                    result[1 + i, 1 + j] = true;
+                    result[1 + i, 1 + j] = !playerPos;
             }
 
         return result;
@@ -89,7 +117,7 @@ internal partial class Map(int width, int height) : IConsoleDrawer
                 if (c != ' ' || representation[mapX, mapY] == '\0')
                     representation[mapX, mapY] = c;
 
-                if (!MapObjectsCollection.Unknown(c))
+                if (!MapObjects.Unknown(c))
                 {
                     MapObject place = new(c, mapX, mapY);
                     objects[place.Coordinates] = place;
@@ -114,7 +142,7 @@ internal partial class Map(int width, int height) : IConsoleDrawer
                 if (Player.X == i && Player.Y == j)
                     continue;
 
-                if (MapObjectsCollection.Unknown(c))
+                if (MapObjects.Unknown(c))
                     result.Add((i, j));
             }
 
@@ -132,27 +160,7 @@ internal partial class Map(int width, int height) : IConsoleDrawer
             .ToList();
     }
 
-    public void AddMonster((int, int) coordinates, Monster monster)
-    {
-        monsters[coordinates] = monster;
-    }
-
     // map view support
-    private (int dX, int dY) _offset;
-
-    public (int dX, int dY) Offset
-    {
-        get => _offset;
-
-        private set
-        {
-            if (Player.Offset != value)
-                DrawMapPoint(ScreenCap.View, Player.X, Player.Y);
-
-            _offset = value;
-        }
-    }
-
     public void DrawTo(Region view)
     {
         int mapY, mapX;
@@ -214,7 +222,7 @@ internal partial class Map(int width, int height) : IConsoleDrawer
     public void DrawMapPoint(Region view, int X, int Y)
     {
         // check map coordinates
-        if (!FullMap.Contains(X, Y))
+        if (!FullSize.Contains(X, Y))
             return;
 
         // calc and check view coordinates
@@ -251,12 +259,12 @@ internal partial class Map(int width, int height) : IConsoleDrawer
 
         for (int j = -range; j <= range; j++) 
         {
-            if (!FullMap.Contains(x, y + j))
+            if (!FullSize.Contains(x, y + j))
                 continue;
 
             for (int i = -range; i <= range; i++)
             {
-                if (!FullMap.Contains(x + i, y + j))
+                if (!FullSize.Contains(x + i, y + j))
                     continue;
 
                 if (i * i + j * j > square_range)

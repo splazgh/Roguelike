@@ -3,20 +3,12 @@ using System.Diagnostics;
 
 namespace Roguelike;
 
+[DebuggerDisplay("Generated maps: {Data.Count}")]
 internal static class Levels
 {
     private const int maxLevels = 1;
 
     public static Dictionary<int, Map> Data = new(maxLevels);
-
-    public static Map Map
-    {
-        [DebuggerStepThrough]
-        get
-        {
-            return Data[Player.Depth];
-        }
-    }
 
     static Levels()
     {
@@ -30,7 +22,7 @@ internal static class Levels
         Player.Stats["HP"] = new("HP", 17, 18, ConsoleColor.DarkRed);
         Player.Stats["MP"] = new("MP", 4, 4, ConsoleColor.DarkBlue);
 
-        Player.ActionAt(11, 9);
+        Player.ActionTo(11, 9);
 
         int max_monsters = Math.Max(5, (int)(Player.Depth * Math.Pow(1.05, Player.Depth + 1)));
         map.PlaceFoes(Player.Depth, max_monsters);

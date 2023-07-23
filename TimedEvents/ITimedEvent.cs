@@ -3,23 +3,23 @@ namespace Roguelike;
 
 internal interface ITimedEvent
 {
-    public int TimeStep { get; }
+    public int TickSize { get; }
     public int TimeCounter { get; protected set; }
 
     public bool IsStopped { get; protected set; }
 
-    public void TickTime();
+    public void OnTick();
 
-    public void OnTimedAction(int timeTick)
+    public void OnTimedAction(int elapsed)
     {
-        if ((TimeCounter -= timeTick) > 0)
+        if ((TimeCounter -= elapsed) > 0)
             return;
 
         while (TimeCounter <= 0)
         {
-            TickTime();
+            OnTick();
 
-            TimeCounter += TimeStep;
+            TimeCounter += TickSize;
         }
     }
 

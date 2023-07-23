@@ -1,8 +1,13 @@
 ﻿
+using System.Diagnostics;
+
 namespace Roguelike;
 
+[DebuggerDisplay("Turns: {Turns}")]
 internal static class ActionsCore
 {
+    internal static long Turns = 0L;
+
     public static void Run()
     {
         ManualResetEventSlim event_timer = new(false);
@@ -18,7 +23,7 @@ internal static class ActionsCore
                 ScreenCap.MessageLog.PendingUpdate = true;
 
                 Journal.Log.DrawTo(ScreenCap.MessageLog);
-                Levels.Map.DrawTo(ScreenCap.View);
+                Player.Map.DrawTo(ScreenCap.View);
                 Player.Stats.DrawTo(ScreenCap.Stats);
                 StatusRow.DrawTo(ScreenCap.Status);
 

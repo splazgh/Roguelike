@@ -3,6 +3,7 @@ using System.Diagnostics;
 
 namespace Roguelike;
 
+[DebuggerDisplay("{Name} {Damage}")]
 internal class Weapon
 {
     public string Name { get; private set; }
@@ -23,6 +24,11 @@ internal class Weapon
         Name = name;
         Description = description;
         Damage = Dice.Create(dice);
+    }
+
+    public override string ToString()
+    {
+        return $"{Name} {Damage}";
     }
 
     [DebuggerDisplay("{Name} {Dice}")]

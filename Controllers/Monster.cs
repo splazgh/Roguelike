@@ -7,7 +7,7 @@ namespace Roguelike;
 internal class Monster(Monsters.Info info, int x, int y) : IConsoleDrawer
 {
     // draw factor
-    public readonly char Char = info.Char;
+    public readonly char Char = info.MapChar;
     public ConsoleColor Color = info.Color;
 
     // naming
@@ -40,6 +40,7 @@ internal class Monster(Monsters.Info info, int x, int y) : IConsoleDrawer
     // items
     public Equipment Equip { get; init; } = new();
 
+    // lib reference
     public readonly Monsters.Info Info = info;
 
     public void DrawTo(Region view)
@@ -47,10 +48,10 @@ internal class Monster(Monsters.Info info, int x, int y) : IConsoleDrawer
         if (Depth != Player.Depth)
             return;
 
-        Map map = Levels.Map;
+        Map map = Player.Map;
 
         // check map coordinates
-        if (!map.FullMap.Contains(X, Y))
+        if (!map.FullSize.Contains(X, Y))
             return;
 
         // calc and check view coordinates

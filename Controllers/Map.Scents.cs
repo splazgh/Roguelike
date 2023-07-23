@@ -10,7 +10,7 @@ internal partial class Map
     {
         (int, int) coord = (x, y);
 
-        if (!FullMap.Contains(coord))
+        if (!FullSize.Contains(coord))
             return;
 
         if (scent_tails.Remove(coord, out _))

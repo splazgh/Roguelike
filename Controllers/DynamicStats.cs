@@ -4,12 +4,12 @@ using System.Diagnostics;
 namespace Roguelike;
 
 [DebuggerDisplay("{Header} {Value}/{MaxValue}")]
-internal class DynamicStats(string name, int v, int m, ConsoleColor color) : IConsoleDrawer
+internal class DynamicStats(string name, int value, int max_value, ConsoleColor color) : IConsoleDrawer
 {
     public string Header = name!.Trim() + ' ';
     public uint Bottom = 0;
 
-    public int Value = v, MaxValue = m;
+    public int Value = value, MaxValue = max_value;
     public ConsoleColor Color = color;
 
     public void DrawTo(Region region)

@@ -1,6 +1,9 @@
 ﻿
+using System.Diagnostics;
+
 namespace Roguelike;
 
+[DebuggerDisplay("{Left,Top,Right,Bottom} : {cX},{cY}")]
 public record Region(int X1, int Y1, int X2, int Y2)
 {
     private readonly string empty_line = new(' ', Math.Max(0, X2 - X1));
