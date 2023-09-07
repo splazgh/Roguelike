@@ -14,6 +14,9 @@ internal class DynamicStats(string name, int value, int max_value, ConsoleColor 
 
     public void DrawTo(Region region)
     {
+        if (ScreenCap.IsResized)
+            return;
+
         if (Bottom == 0)
             return;
 

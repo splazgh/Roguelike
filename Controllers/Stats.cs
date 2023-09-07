@@ -50,6 +50,9 @@ internal class Stats : IConsoleDrawer
 
     public void DrawTo(Region region)
     {
+        if (ScreenCap.IsResized)
+            return;
+
         region.SetCursorPosition(0, 1);
 
         region.WriteLine(Name);

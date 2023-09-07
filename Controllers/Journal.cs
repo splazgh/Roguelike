@@ -111,6 +111,9 @@ public partial class Journal : IConsoleDrawer
 
         while (!region.WriteLock && main_index++ < records.Count)
         {
+            if (ScreenCap.IsResized)
+                return;
+
             row_index = records.Count - main_index;
 
             var rows = records[row_index].SplitRows(region.Width);

@@ -257,6 +257,9 @@ internal static class Player
 
     public static void DrawTo(Region view)
     {
+        if (ScreenCap.IsResized)
+            return;
+
         Map map = Levels.Data[Depth];
 
         // check map coordinates

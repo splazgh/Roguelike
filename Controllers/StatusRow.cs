@@ -5,8 +5,17 @@ internal static class StatusRow
 {
     private const string key_tips_template = "  CTRL+X  Exit      F1  Key Tip";
 
+    internal static void OnResize(Region region)
+    {
+        region.PendingUpdate = true;
+        DrawTo(region);
+    }
+
     public static void DrawTo(Region region)
     {
+        if (ScreenCap.IsResized)
+            return;
+
         var full_row = region.Line;
         key_tips_template.ToString().CopyTo(full_row);
 

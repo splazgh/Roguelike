@@ -172,6 +172,9 @@ internal partial class Map(int width, int height) : IConsoleDrawer
         int row_index = -1;
         while (++row_index + view.Y1 < view.Y2)
         {
+            if (ScreenCap.IsResized)
+                return;
+
             mapY = Offset.dY + row_index;
 
             char[] fullRow = view.Line;
